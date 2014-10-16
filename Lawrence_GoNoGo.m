@@ -40,53 +40,64 @@ COLORS.GREEN = [0 255 0];
 COLORS.YELLOW = [255 255 0];
 COLORS.rect = COLORS.GREEN;
 
-%Update to 6 x 30...
 STIM = struct;
-STIM.blocks = 8;
-STIM.trials = 32;
+STIM.blocks = 4;
+STIM.trials = 50;
+STIM.totes = STIM.blocks*STIM.trials;
 STIM.trialdur = 1.250;
 
-% Load in pics
+
+%% Find & load in pics
+%find the image directory by figuring out where the .m is kept
+
+[imgdir,~,~] = fileparts(which('Lawrence_GoNoGo.m'));
+
+try
+    cd([imgdir filesep 'IMAGES'])
+catch
+    error('Could not find and/or open the IMAGES folder.');
+end
 
 PICS =struct;
 if COND == 1;                   %Condtion = 1 is food. 
-    PICS.in.go = dir('*good.jpg');
-    PICS.in.no = dir('*bad.jpg');
-    PICS.in.neut = dir('*water.jpg');
+    PICS.in.go = dir('good*.jpg');
+    PICS.in.no = dir('*bad*.jpg');
+    PICS.in.neut = dir('*water*.jpg');
 elseif COND == 2;               %Condition = 2 is not food (birds/flowers)
-    PICS.in.go = dir('*bird.jpg');
-    PICS.in.no = dir('*flowers.jpg');
-    PICS.in.neut = dir('*mam.jpg');
+    PICS.in.go = dir('*bird*.jpg');
+    PICS.in.no = dir('*flowers*.jpg');
+    PICS.in.neut = dir('*mam*.jpg');
 end
 % picsfields = fieldnames(PICS.in);
 
 %Check if pictures are present. If not, throw error.
 %Could be updated to search computer to look for pics...
 if isempty(PICS.in.go) || isempty(PICS.in.no) || isempty(PICS.in.neut)
-    error('Could not find pics. Please ensure pictures are found in the same folder as the .m task file.');
+    error('Could not find pics. Please ensure pictures are found in a folder names IMAGES within the folder containing the .m task file.');
 end
 
+%% Fill in rest of pertinent info
 GNG = struct;
 
-trial_types = [ones(14,1); repmat(2,14,1); repmat(3,4,1)];  %1 = go; 2 = no; 3 = neutral/variable
-gonogo = [ones(14,1); zeros(14,1)];                         %1 = go; 0 = nogo;
+trial_types = [ones(length(PICS.in.go),1); repmat(2,length(PICS.in.no),1); repmat(3,length(PICS.in.neut),1)];  %1 = go; 2 = no; 3 = neutral/variable
+gonogo = [ones(length(PICS.in.go),1); zeros(length(PICS.in.go),1)];                         %1 = go; 0 = nogo;
 gonogoh20 = BalanceTrials(sum(trial_types==3),1,[0 1]);     %For neutral, go & no go are randomized
 gonogo = [gonogo; gonogoh20];
 %When appropriate pics are found, update these to
 %randperm(length(Pics.in.go)) to make a long list of all the pic numbers
 %randomized.
-piclist = [randperm(length(PICS.in.go)) randperm(length(PICS.in.go))];
-piclist = [piclist randperm(length(PICS.in.no)) randperm(length(PICS.in.no))];
-piclist = [piclist randperm(length(PICS.in.neut))]';
-l_r = BalanceTrials(STIM.trials,1,[1 2]);                   %1 = Left, 2 = Right
+piclist = [1:length(PICS.in.go) 1:length(PICS.in.no) 1:length(PICS.in.neut)]';
+l_r = randi(2,200,1);                  %1 = Left, 2 = Right
 trial_types = [trial_types gonogo piclist l_r];
+shuffled = trial_types(randperm(size(trial_types,1)),:);
 
 for g = 1:STIM.blocks;
-    shuffled = trial_types(randperm(size(trial_types,1)),:);
-    GNG.var.trial_type(1:STIM.trials,g) = shuffled(:,1);
-    GNG.var.picnum(1:STIM.trials,g) = shuffled(:,3);
-    GNG.var.GoNoGo(1:STIM.trials,g) = shuffled(:,2);
-    GNG.var.lr(1:STIM.trials,g) = shuffled(:,4);
+    row = ((g-1)*STIM.trials)+1;
+    rend = row+STIM.trials - 1;
+    GNG.var.trial_type(1:STIM.trials,g) = shuffled(row:rend,1);
+    GNG.var.picnum(1:STIM.trials,g) = shuffled(row:rend,3);
+    GNG.var.GoNoGo(1:STIM.trials,g) = shuffled(row:rend,2);
+    GNG.var.lr(1:STIM.trials,g) = shuffled(row:rend,4);
 end
 
     GNG.data.rt = zeros(STIM.trials, STIM.blocks);
@@ -224,8 +235,8 @@ for block = 1:STIM.blocks;
         %Display "N/A" for this block's RT.
         ibt_rt = sprintf('Average RT:\tUnable to calculate RT due to 0 correct trials.');
     else
-        block_go = SST.var.GoNoGo(:,block) == 1;                        %Find go trials
-        blockrts = SST.data.rt(:,block);                                %Pull all RT data
+        block_go = GNG.var.GoNoGo(:,block) == 1;                        %Find go trials
+        blockrts = GNG.data.rt(:,block);                                %Pull all RT data
         blockrts = blockrts(c & block_go);                              %Resample RT only if go & correct.
         avg_rt_block = fix(mean(blockrts)*1000);                        %Display avg rt in milliseconds.
         ibt_rt = sprintf('Average RT:\t\t\t%3d milliseconds',avg_rt_block);
@@ -243,7 +254,7 @@ for block = 1:STIM.blocks;
     if block > 1
         % Also display rest of block data summary
         tot_trial = block * 32;
-        totes_c = SST.data.correct == 1;
+        totes_c = GNG.data.correct == 1;
         corr_count_totes = sprintf('Number Correct: \t%d of %d',length(find(totes_c)),tot_trial);
         corr_per_totes = length(find(totes_c))*100/tot_trial;
         corr_pert_totes = sprintf('Percent Correct:\t%4.1f%%',corr_per_totes);
@@ -254,8 +265,8 @@ for block = 1:STIM.blocks;
             %Stop task & alert experimenter?
             tot_rt = sprintf('Block %d Average RT:\tUnable to calculate RT due to 0 correct trials.',block);
         else
-            tot_go = SST.var.GoNoGo == 1;
-            totrts = SST.data.rt;
+            tot_go = GNG.var.GoNoGo == 1;
+            totrts = GNG.data.rt;
             totrts = totrts(totes_c & tot_go);
             avg_rt_tote = fix(mean(totrts)*1000);     %Display in units of milliseconds.
             tot_rt = sprintf('Average RT:\t\t\t%3d milliseconds',avg_rt_tote);
@@ -275,15 +286,14 @@ end
 
 %Export pro.DMT to text and save with subject number.
 %find the mfilesdir by figuring out where show_faces.m is kept
-[mfilesdir,~,~] = fileparts(which('Lawrence_GoNoGo.m'));
+[imgdir,~,~] = fileparts(which('Lawrence_GoNoGo.m'));
 
 %get the parent directory, which is one level up from mfilesdir
-[parentdir,~,~] =fileparts(mfilesdir);
+[parentdir,~,~] =fileparts(imgdir);
 
 
 %create the paths to the other directories, starting from the parent
 %directory
-% savedir = [parentdir filesep 'Results\proDMT\'];
 savedir = [parentdir filesep 'Results' filesep];
 
 save([savedir 'GNG_' num2str(ID) '_' num2str(SESS) '.mat'],'GNG');
