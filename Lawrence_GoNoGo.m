@@ -2,14 +2,15 @@ function Lawrence_GoNoGo(varargin)
 
 global KEY COLORS w wRect XCENTER YCENTER PICS STIM GNG trial
 
-prompt={'SUBJECT ID' 'Condition (1 or 2)' 'Session (1, 2, or 3)'};
-defAns={'4444' '' ''};
+prompt={'SUBJECT ID' 'Condition (1 or 2)' 'Session (1, 2, or 3)' 'Practice? 0 or 1'};
+defAns={'4444' '' '' ''};
 
 answer=inputdlg(prompt,'Please input subject info',1,defAns);
 
 ID=str2double(answer{1});
 COND = str2double(answer{2});
 SESS = str2double(answer{3});
+prac = str2double(answer{4});
 
 %Make sure input data makes sense.
 % try
@@ -178,23 +179,87 @@ Screen('Flip',w);
 WaitSecs(1);
 
 %% Instructions
-instruct = sprintf('You will see pictures either on the left or right side of the screen,\n surrounded by a solid or dashed border.\n\nPress the "%s" if the image is on the left side of the screen or "%s" if the image is on right side of the screen\nBUT only if you see a solid bar around the image.\n\nDo not press if you see a dashed bar.\nPress any key to continue.',KbName(KEY.left),KbName(KEY.right));
-DrawFormattedText(w,instruct,'center','center',COLORS.WHITE,wRect(3)-200);
+instruct = sprintf('You will see pictures either on the left or right side of the screen, surrounded by a solid or dashed border.\n\nPress the "%s" if the image is on the left side of the screen or "%s" if the image is on right side of the screen\nBUT only if you see a solid bar around the image.\n\nDo not press if you see a dashed bar.\n\nPress any key to continue.',KbName(KEY.left),KbName(KEY.right));
+DrawFormattedText(w,instruct,'center','center',COLORS.WHITE,75);
 Screen('Flip',w);
 KbWait();
 
 %% Practice
-%Set up single trials with instructions; and maybe additional trials with
-%verbose feedback ("You pressed the key when the line was dashed. Only
-%press the key when the line is solid.")
-DrawFormattedText(w,' Let''s practice.\n\nPress any key to continue.','center','center',COLORS.WHITE);
-Screen('Flip',w);
-KbWait([],2);
 
-% Practice goes here.
-% Pratice is mandatory.  Should ask at end if they want to see practice
-% again. Use "while 1" and break with KbCheck == no, do not repeat
-% practice.
+if prac == 1;
+    %Set up single trials with instructions; and maybe additional trials with
+    %verbose feedback ("You pressed the key when the line was dashed. Only
+    %press the key when the line is solid.")
+    DrawFormattedText(w,' Let''s practice.\n\nPress any key to continue.','center','center',COLORS.WHITE);
+    Screen('Flip',w);
+    KbWait([],2);
+    
+    
+    % Practice goes here.
+    % Pratice is mandatory.  Should ask at end if they want to see practice
+    % again. Use "while 1" and break with KbCheck == no, do not repeat
+    % practice.
+    
+    %Load first neutral pic
+    practpic = imread(getfield(PICS,'in','neut',{1},'name'));
+    practpic = Screen('MakeTexture',w,practpic);
+    
+    %Display pic on left to show go signal and "left" key.
+    Screen('FrameRect',w,COLORS.rect,STIM.framerect,6);
+    Screen('DrawTexture',w,practpic,[],STIM.img(1,:));
+    pract_text = sprintf('In this trial you would press "%s" because the image is on the left with a solid frame.\n\nPress "%s" now.',KbName(KEY.left),KbName(KEY.left));
+    DrawFormattedText(w,pract_text,'center','center',COLORS.WHITE,25,[],[],[],[],STIM.img(2,:));
+    Screen('Flip',w);
+    
+    commandwindow;
+    WaitSecs(2);
+    while 1
+        FlushEvents();
+        [d, ~, c] = KbCheck();            %wait for left key to be pressed
+        if d == 1 && find(c) == KEY.left
+            break;
+        else
+            FlushEvents();
+        end
+    end
+    
+    %Displat img on Right to show use of "right" key.
+    Screen('FrameRect',w,COLORS.rect,STIM.framerect,6);
+    Screen('DrawTexture',w,practpic,[],STIM.img(2,:));
+    pract_text = sprintf('And in this trial you would press "%s" because the image is on the right with a solid frame.\n\nPress "%s" now.',KbName(KEY.right),KbName(KEY.right));
+    DrawFormattedText(w,pract_text,'center','center',COLORS.WHITE,25,[],[],[],[],STIM.img(1,:));
+    Screen('Flip',w);
+    while 1
+        FlushEvents();
+        [dd, ~, cc] = KbCheck();            %wait for "right" key to be pressed
+        if dd == 1 && find(cc) == KEY.right
+            break;
+        else
+            FlushEvents();
+        end
+    end
+    Screen('Flip',w);
+    WaitSecs(1);
+    
+    %Now do "no go" trial.
+    DrawDashRect();
+    Screen('DrawTexture',w,practpic,[],STIM.img(1,:));
+    pract_text = sprintf('In the trials with the dashed frame, do not press any buttons. A real trial like this will move on automatically.\n\nPress any key to continue.');
+    DrawFormattedText(w,pract_text,'center','center',COLORS.WHITE,25,[],[],[],[],STIM.img(2,:));
+    Screen('Flip',w);
+    KbWait();
+    WaitSecs(.5);
+    
+    %Do another no go trial with image on other side
+    DrawDashRect();
+    Screen('DrawTexture',w,practpic,[],STIM.img(2,:));
+    pract_text = sprintf('It doesn''t matter which side the image is on, do not press either button.\n\nPress any key to continue.');
+    DrawFormattedText(w,pract_text,'center','center',COLORS.WHITE,25,[],[],[],[],STIM.img(1,:));
+    Screen('Flip',w);
+    KbWait();
+    Screen('Flip',w);
+    WaitSecs(2);
+end
 
 %% Task
 DrawFormattedText(w,'The Go-NoGo task is about to begin.\n\n\nPress any key to begin the task.','center','center',COLORS.WHITE);
@@ -206,7 +271,7 @@ WaitSecs(1.5);
 for block = 1:STIM.blocks;
     %Load pics block by block.
     DrawPics4Block(block);
-    ibt = sprintf('Prepare for Block %d',block);
+    ibt = sprintf('Prepare for Block %d. \n\n\nPress any key when you are ready to begin.',block);
     DrawFormattedText(w,ibt,'center','center',COLORS.WHITE);
     Screen('Flip',w);
     KbWait();
@@ -226,7 +291,7 @@ for block = 1:STIM.blocks;
     block_text = sprintf('Block %d Results',block);
     
     c = GNG.data.correct(:,block) == 1;                                 %Find correct trials
-    corr_count = sprintf('Number Correct:\t%d of 32',length(find(c)));  %Number correct = length of find(c)
+    corr_count = sprintf('Number Correct:\t%d of %d',length(find(c)),STIM.trials);  %Number correct = length of find(c)
     corr_per = length(find(c))*100/length(c);                           %Percent correct = length find(c) / total trials
     corr_pert = sprintf('Percent Correct:\t%4.1f%%',corr_per);          %sprintf that data to string.
     
@@ -244,7 +309,7 @@ for block = 1:STIM.blocks;
     
     ibt_xdim = wRect(3)/10;
     ibt_ydim = wRect(4)/4;
-    old = Screen('TextSize',w,25);
+%    old = Screen('TextSize',w,25);
     DrawFormattedText(w,block_text,'center',wRect(4)/10,COLORS.WHITE);   %Next lines display all the data.
     DrawFormattedText(w,corr_count,ibt_xdim,ibt_ydim,COLORS.WHITE);
     DrawFormattedText(w,corr_pert,ibt_xdim,ibt_ydim+30,COLORS.WHITE);    
@@ -276,9 +341,10 @@ for block = 1:STIM.blocks;
         DrawFormattedText(w,corr_count_totes,ibt_xdim,ibt_ydim+150,COLORS.WHITE);
         DrawFormattedText(w,corr_pert_totes,ibt_xdim,ibt_ydim+180,COLORS.WHITE);
         DrawFormattedText(w,tot_rt,ibt_xdim,ibt_ydim+210,COLORS.WHITE);
-        %Screen('Flip',w);
+        
     end
-
+Screen('Flip',w);
+KbWait();
     
 end
 
@@ -342,15 +408,7 @@ end
 %     WaitSecs(.1);   
     RT_start = Screen('Flip',w,[],1);
     telap = GetSecs() - RT_start;
-    correct = -999;
-    
-    %Display left/right
-%     %Left: First attempt at image dipsplay
-%     xxxx = [wRect(3)/10,wRect(4)/4,wRect(3)/10+wRect(4)/2,wRect(4)*(3/4)];
-%     Screen('FrameRect',w,COLORS.WHITE,STIM.framerect,6); 
-%     Screen('DrawTexture',w,aaa,[],xxxx);
-%     Screen('Flip',w);   
- 
+    correct = -999; 
 
     while telap <= (STIM.trialdur); %Subtract .1 from this if delay is desired.
         telap = GetSecs() - RT_start;
@@ -370,6 +428,8 @@ end
             break
             
         elseif Down == 1 && find(Code) == incorr_respkey %The wrong key was pressed. Throw X regardless of Go/No Go
+            trial_rt = GetSecs() - RT_start;
+            
             DrawFormattedText(w,'X','center','center',COLORS.RED);
             Screen('Flip',w);
             if GNG.var.GoNoGo(trial,block) == 0;        %Distinguish between NoGo & Go incorrect
@@ -400,7 +460,7 @@ end
     end
     
 
-%end
+FlushEvents();
 end
 
 %%
