@@ -84,9 +84,8 @@ trial_types = [ones(length(PICS.in.go),1); repmat(2,length(PICS.in.no),1); repma
 gonogo = [ones(length(PICS.in.go),1); zeros(length(PICS.in.go),1)];                         %1 = go; 0 = nogo;
 gonogoh20 = BalanceTrials(sum(trial_types==3),1,[0 1]);     %For neutral, go & no go are randomized
 gonogo = [gonogo; gonogoh20];
-%When appropriate pics are found, update these to
-%randperm(length(Pics.in.go)) to make a long list of all the pic numbers
-%randomized.
+
+%Make long list of #s to represent each pic
 piclist = [1:length(PICS.in.go) 1:length(PICS.in.no) 1:length(PICS.in.neut)]';
 l_r = randi(2,200,1);                  %1 = Left, 2 = Right
 trial_types = [trial_types gonogo piclist l_r];
