@@ -349,29 +349,29 @@ end
 
 %% Save all the data
 
-%Export pro.DMT to text and save with subject number.
+%Export GNG to text and save with subject number.
 %find the mfilesdir by figuring out where show_faces.m is kept
-[imgdir,~,~] = fileparts(which('Lawrence_GoNoGo.m'));
+[mfilesdir,~,~] = fileparts(which('Lawrence_GoNoGo.m'));
 
 %get the parent directory, which is one level up from mfilesdir
-[parentdir,~,~] =fileparts(imgdir);
+savedir = [mfilesdir filesep 'Results' filesep];
 
+if exist(savedir,'dir') == 0;
+    % If savedir (the directory to save files in) does not exist, make it.
+    mkdir(savedir);
+end
 
-%create the paths to the other directories, starting from the parent
-%directory
-savedir = [parentdir filesep 'Results' filesep];
+try
 
 save([savedir 'GNG_' num2str(ID) '_' num2str(SESS) '.mat'],'GNG');
 
+catch
+    error('Although data was (most likely) collected, file was not properly saved. 1. Right click on variable in right-hand side of screen. 2. Save as SST_#_#.mat where first # is participant ID and second is session #. If you are still unsure what to do, contact your boss, Kim Martin, or Erik Knight (elk@uoregon.edu).')
+end
+
 DrawFormattedText(w,'Thank you for participating\n in this part of the study!','center','center',COLORS.WHITE);
 Screen('Flip', w);
-
-if w~=w2
-    
-    DrawFormattedText(w2,'Thank you for participating\n in this part of the study!','center','center',COLORS.WHITE);
-    Screen('Flip', w2);
-    
-end
+KbWait();
 
 sca
 
