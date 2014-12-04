@@ -1,9 +1,12 @@
 function Lawrence_GoNoGo(varargin)
+%NEEDS UPDATE: Real pics, real trial & block number (which is dependent on
+%pics).
+
 
 global KEY COLORS w wRect XCENTER YCENTER PICS STIM GNG trial
 
 prompt={'SUBJECT ID' 'Condition (1 or 2)' 'Session (1, 2, or 3)' 'Practice? 0 or 1'};
-defAns={'4444' '' '' ''};
+defAns={'444' '' '' ''};
 
 answer=inputdlg(prompt,'Please input subject info',1,defAns);
 
@@ -51,23 +54,36 @@ STIM.trialdur = 1.250;
 %% Find & load in pics
 %find the image directory by figuring out where the .m is kept
 
-[imgdir,~,~] = fileparts(which('Lawrence_GoNoGo.m'));
+[imgdir,~,~] = fileparts(which('MasterPics_PlaceHolder.m'));
+picratefolder = fullfile(imgdir,'SavingsRatings');
 
 try
-    cd([imgdir filesep 'IMAGES'])
+    cd(picratefolder)
 catch
-    error('Could not find and/or open the IMAGES folder.');
+    error('Could not find and/or open the .');
 end
 
+filen = sprintf('PicRate_%03d.mat',ID);
+try
+    p = open(filen);
+catch
+    error('Could not find and/or open the rating file.');
+end
+
+cd ..
+ 
 PICS =struct;
 if COND == 1;                   %Condtion = 1 is food. 
-    PICS.in.go = dir('good*.jpg');
-    PICS.in.no = dir('*bad*.jpg');
-    PICS.in.neut = dir('*water*.jpg');
+%     PICS.in.go = dir('good*.jpg');
+%     PICS.in.no = dir('*bad*.jpg');
+%Choose top 80 most appetizing pics)
+    PICS.in.go = struct('name',{p.PicRating.go(1:80).name}');
+    PICS.in.no = struct('name',{p.PicRating.no(1:80).name}');
+    PICS.in.neut = dir('Water*');
 elseif COND == 2;               %Condition = 2 is not food (birds/flowers)
-    PICS.in.go = dir('*bird*.jpg');
-    PICS.in.no = dir('*flowers*.jpg');
-    PICS.in.neut = dir('*mam*.jpg');
+    PICS.in.go = dir('Bird*');
+    PICS.in.no = dir('Flowers*');
+    PICS.in.neut = dir('Mammal*');
 end
 % picsfields = fieldnames(PICS.in);
 
@@ -87,9 +103,11 @@ gonogo = [gonogo; gonogoh20];
 
 %Make long list of #s to represent each pic
 piclist = [1:length(PICS.in.go) 1:length(PICS.in.no) 1:length(PICS.in.neut)]';
-l_r = randi(2,200,1);                  %1 = Left, 2 = Right
+l_r = randi(2,length(piclist),1);                  %1 = Left, 2 = Right
 trial_types = [trial_types gonogo piclist l_r];
 shuffled = trial_types(randperm(size(trial_types,1)),:);
+
+%Add jitter on "+"
 
 for g = 1:STIM.blocks;
     row = ((g-1)*STIM.trials)+1;
@@ -277,7 +295,12 @@ for block = 1:STIM.blocks;
     
     old = Screen('TextSize',w,80);
     for trial = 1:STIM.trials;
+        DrawFormattedText(w,'+','center','center',COLORS.WHITE);
+        Screen('Flip',w);
+        WaitSecs(.5); %XXX: Jitter this.
+        
         [GNG.data.rt(trial,block), GNG.data.correct(trial,block)] = DoPicGoNoGo(trial,block);
+        
         %Wait 500 ms
         Screen('Flip',w);
         WaitSecs(.5);
