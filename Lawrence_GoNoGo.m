@@ -1,6 +1,5 @@
 function Lawrence_GoNoGo(varargin)
-%NEEDS UPDATE: Real pics, real trial & block number (which is dependent on
-%pics).
+
 
 
 global KEY COLORS w wRect XCENTER YCENTER PICS STIM GNG trial
@@ -45,8 +44,10 @@ COLORS.YELLOW = [255 255 0];
 COLORS.rect = COLORS.GREEN;
 
 STIM = struct;
-STIM.blocks = 4;
+STIM.blocks = 6;
 STIM.trials = 50;
+STIM.gotrials = 130;
+STIM.notrials = 130;
 STIM.totes = STIM.blocks*STIM.trials;
 STIM.trialdur = 1.250;
 
@@ -63,14 +64,26 @@ catch
     error('Could not find and/or open the .');
 end
 
-filen = sprintf('PicRate_%03d.mat',ID);
+filen = sprintf('PicRate_%d.mat',ID);
 try
     p = open(filen);
 catch
-    error('Could not find and/or open the rating file.');
+    warning('Could not find and/or open the rating file.');
+    commandwindow;
+    randopics = input('Would you like to continue with a random selection of images? [1 = Yes, 0 = No]');
+    if randopics == 1
+        p = struct;
+        p.PicRating.go = dir('Healthy*');
+        p.PicRating.no = dir('Unhealthy*');
+        %XXX: ADD RANDOMIZATION SO THAT SAME 80 IMAGES AREN'T CHOSEN
+        %EVERYTIME
+    else
+        error('Task cannot proceed without images. Contact Erik (elk@uoregon.edu) if you have continued problems.')
+    end
+    
 end
 
-cd ..
+cd(imgdir);
  
 PICS =struct;
 if COND == 1;                   %Condtion = 1 is food. 
@@ -96,14 +109,15 @@ end
 %% Fill in rest of pertinent info
 GNG = struct;
 
-trial_types = [ones(length(PICS.in.go),1); repmat(2,length(PICS.in.no),1); repmat(3,length(PICS.in.neut),1)];  %1 = go; 2 = no; 3 = neutral/variable
-gonogo = [ones(length(PICS.in.go),1); zeros(length(PICS.in.go),1)];                         %1 = go; 0 = nogo;
+trial_types = [ones(STIM.gotrials,1); repmat(2,STIM.notrials,1); repmat(3,length(PICS.in.neut),1)];  %1 = go; 2 = no; 3 = neutral/variable
+gonogo = [ones(STIM.gotrials,1); zeros(STIM.notrials,1)];                         %1 = go; 0 = nogo;
 gonogoh20 = BalanceTrials(sum(trial_types==3),1,[0 1]);     %For neutral, go & no go are randomized
 gonogo = [gonogo; gonogoh20];
 
 %Make long list of #s to represent each pic
-piclist = [1:length(PICS.in.go) 1:length(PICS.in.no) 1:length(PICS.in.neut)]';
-l_r = randi(2,length(piclist),1);                  %1 = Left, 2 = Right
+% piclist = [1:length(PICS.in.go) 1:length(PICS.in.no) 1:length(PICS.in.neut)]';
+piclist = [randsample(80,STIM.gotrials,1)' randsample(80,STIM.notrials,1)' 1:length(PICS.in.neut)]';
+l_r = randi(2,length(piclist),1); 
 trial_types = [trial_types gonogo piclist l_r];
 shuffled = trial_types(randperm(size(trial_types,1)),:);
 
@@ -132,7 +146,7 @@ commandwindow;
 
 %%
 %change this to 0 to fill whole screen
-DEBUG=0;
+DEBUG=1;
 
 %set up the screen and dimensions
 
