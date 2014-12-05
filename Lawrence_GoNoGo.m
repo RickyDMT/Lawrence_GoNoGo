@@ -1,14 +1,11 @@
 function Lawrence_GoNoGo(varargin)
-% Move to X to black screen when wrong, not on top of image
-% Same color for all frames.
-% Save image names as well.
-% Write up dictionary at top of each task.
+
 
 
 global KEY COLORS w wRect XCENTER YCENTER PICS STIM GNG trial
 
 prompt={'SUBJECT ID' 'Condition (1 or 2)' 'Session (1, 2, or 3)' 'Practice? 0 or 1'};
-defAns={'444' '' '' ''};
+defAns={'4444' '' '' ''};
 
 answer=inputdlg(prompt,'Please input subject info',1,defAns);
 
@@ -75,7 +72,6 @@ catch
     commandwindow;
     randopics = input('Would you like to continue with a random selection of images? [1 = Yes, 0 = No]');
     if randopics == 1
-        cd(imgdir);
         p = struct;
         p.PicRating.go = dir('Healthy*');
         p.PicRating.no = dir('Unhealthy*');
@@ -207,7 +203,7 @@ STIM.img(1,1:4) = [wRect(3)/10,wRect(4)/4,wRect(3)/10+wRect(4)/2,wRect(4)*(3/4)]
 STIM.img(2,1:4) = [(wRect(3)*(9/10))-wRect(4)/2,wRect(4)/4,wRect(3)*(9/10),wRect(4)*(3/4)];   %R
 
 %% Initial screen
-DrawFormattedText(w,'The Go-NoGo task is about to begin.\nPress any key to continue.','center','center',COLORS.WHITE);
+DrawFormattedText(w,'The Go-NoGo task is about to begin.\nPress any key to continue.','center','center',COLORS.WHITE,50,[],[],1.5);
 Screen('Flip',w);
 KbWait();
 Screen('Flip',w);
@@ -215,7 +211,7 @@ WaitSecs(1);
 
 %% Instructions
 instruct = sprintf('You will see pictures either on the left or right side of the screen, surrounded by a solid or dashed border.\n\nPress the "%s" if the image is on the left side of the screen or "%s" if the image is on right side of the screen\nBUT only if you see a solid bar around the image.\n\nDo not press if you see a dashed bar.\n\nPress any key to continue.',KbName(KEY.left),KbName(KEY.right));
-DrawFormattedText(w,instruct,'center','center',COLORS.WHITE,75);
+DrawFormattedText(w,instruct,'center','center',COLORS.WHITE,50,[],[],1.5);
 Screen('Flip',w);
 KbWait();
 
