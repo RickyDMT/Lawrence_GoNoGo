@@ -1,5 +1,8 @@
 function Lawrence_GoNoGo(varargin)
-
+% Move to X to black screen when wrong, not on top of image
+% Same color for all frames.
+% Save image names as well.
+% Write up dictionary at top of each task.
 
 
 global KEY COLORS w wRect XCENTER YCENTER PICS STIM GNG trial
@@ -41,7 +44,7 @@ COLORS.RED = [255 0 0];
 COLORS.BLUE = [0 0 255];
 COLORS.GREEN = [0 255 0];
 COLORS.YELLOW = [255 255 0];
-COLORS.rect = COLORS.GREEN;
+COLORS.rect = COLORS.WHITE;
 
 STIM = struct;
 STIM.blocks = 6;
@@ -72,6 +75,7 @@ catch
     commandwindow;
     randopics = input('Would you like to continue with a random selection of images? [1 = Yes, 0 = No]');
     if randopics == 1
+        cd(imgdir);
         p = struct;
         p.PicRating.go = dir('Healthy*');
         p.PicRating.no = dir('Unhealthy*');
@@ -146,7 +150,7 @@ commandwindow;
 
 %%
 %change this to 0 to fill whole screen
-DEBUG=1;
+DEBUG=0;
 
 %set up the screen and dimensions
 
