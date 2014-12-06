@@ -14,7 +14,7 @@ function Lawrence_GoNoGo(varargin)
 
 %Data:
 %All trial-by-trial data are arranged such that each column represents a
-%block and each row represents a trial within that block.
+%block and each row represents a 
 %GNG.data.rt: Reaction time. Initially all 0s. Correct & incorrect rts
     %stored in seconds. If appropriate non-press, value = -999.
 %GNG.data.correct: Designates if trial was correct. initially -999 (and so,
@@ -22,7 +22,6 @@ function Lawrence_GoNoGo(varargin)
     %trial was a Go trial, but wrong button was pressed (i.e., Left button when
     %trial was a Right-side).
 %GNG.data.avg_rt: Average reaction time per block.
-%GNG.data.info: Basic info of subject, session, condition, etc.
 
 global KEY COLORS w wRect XCENTER YCENTER PICS STIM GNG trial
 
