@@ -351,57 +351,64 @@ for block = 1:STIM.blocks;
     block_text = sprintf('Block %d Results',block);
     
     c = GNG.data.correct(:,block) == 1;                                 %Find correct trials
-    corr_count = sprintf('Number Correct:\t%d of %d',length(find(c)),STIM.trials);  %Number correct = length of find(c)
+%     corr_count = sprintf('Number Correct:\t%d of %d',length(find(c)),STIM.trials);  %Number correct = length of find(c)
     corr_per = length(find(c))*100/length(c);                           %Percent correct = length find(c) / total trials
-    corr_pert = sprintf('Percent Correct:\t%4.1f%%',corr_per);          %sprintf that data to string.
+%     corr_pert = sprintf('Percent Correct:\t%4.1f%%',corr_per);          %sprintf that data to string.
+%     fulltext = sprintf('Number Correct:\t\t%d of %d\nPercent Correct:\t\t%4.1f%%',length(find(c)),STIM.trials,corr_per);
     
     if isempty(c(c==1))
         %Don't try to calculate avg RT, they got them all wrong (WTF?)
         %Display "N/A" for this block's RT.
-        ibt_rt = sprintf('Average RT:\tUnable to calculate RT due to 0 correct trials.');
+%         ibt_rt = sprintf('Average RT:\tUnable to calculate RT due to 0 correct trials.');
+    fulltext = sprintf('Number Correct:\t\t%d of %d\nPercent Correct:\t\t%4.1f%%\nAverage RT:\t\tUnable to calculate due to 0 correct trials.',length(find(c)),STIM.trials,corr_per);
     else
         block_go = GNG.var.GoNoGo(:,block) == 1;                        %Find go trials
         blockrts = GNG.data.rt(:,block);                                %Pull all RT data
         blockrts = blockrts(c & block_go);                              %Resample RT only if go & correct.
         avg_rt_block = fix(mean(blockrts)*1000);                        %Display avg rt in milliseconds.
-        ibt_rt = sprintf('Average RT:\t\t\t%3d milliseconds',avg_rt_block);
+%         ibt_rt = sprintf('Average RT:\t\t\t%3d milliseconds',avg_rt_block);
+    fulltext = sprintf('Number Correct:\t\t%d of %d\nPercent Correct:\t\t%4.1f%%\nAverage Rt:\t\t\t%3d milliseconds',length(find(c)),STIM.trials,corr_per,avg_rt_block);
+
     end
     
     ibt_xdim = wRect(3)/10;
     ibt_ydim = wRect(4)/4;
 %    old = Screen('TextSize',w,25);
     DrawFormattedText(w,block_text,'center',wRect(4)/10,COLORS.WHITE);   %Next lines display all the data.
-    DrawFormattedText(w,corr_count,ibt_xdim,ibt_ydim,COLORS.WHITE);
-    DrawFormattedText(w,corr_pert,ibt_xdim,ibt_ydim+30,COLORS.WHITE);    
-    DrawFormattedText(w,ibt_rt,ibt_xdim,ibt_ydim+60,COLORS.WHITE);
+%     DrawFormattedText(w,corr_count,ibt_xdim,ibt_ydim,COLORS.WHITE);
+%     DrawFormattedText(w,corr_pert,ibt_xdim,ibt_ydim+30,COLORS.WHITE);    
+%     DrawFormattedText(w,ibt_rt,ibt_xdim,ibt_ydim+60,COLORS.WHITE);
+    DrawFormattedText(w,fulltext,ibt_xdim,ibt_ydim,COLORS.WHITE,[],[],[],1.5);
     %Screen('Flip',w);
     
     if block > 1
         % Also display rest of block data summary
-        tot_trial = block * 32;
+        tot_trial = block * STIM.trials;
         totes_c = GNG.data.correct == 1;
-        corr_count_totes = sprintf('Number Correct: \t%d of %d',length(find(totes_c)),tot_trial);
+%         corr_count_totes = sprintf('Number Correct: \t%d of %d',length(find(totes_c)),tot_trial);
         corr_per_totes = length(find(totes_c))*100/tot_trial;
-        corr_pert_totes = sprintf('Percent Correct:\t%4.1f%%',corr_per_totes);
+%         corr_pert_totes = sprintf('Percent Correct:\t%4.1f%%',corr_per_totes);
         
         if isempty(totes_c(totes_c ==1))
             %Don't try to calculate RT, they have missed EVERY SINGLE GO
             %TRIAL! 
             %Stop task & alert experimenter?
-            tot_rt = sprintf('Block %d Average RT:\tUnable to calculate RT due to 0 correct trials.',block);
+            fullblocktext = sprintf('Number Correct:\t\t%d of %d\nPercent Correct:\t\t%4.1f%%\nAverage RT:\tUnable to calculate RT due to 0 correct trials.',length(find(totes_c)),tot_trial,corr_per_totes);
         else
             tot_go = GNG.var.GoNoGo == 1;
             totrts = GNG.data.rt;
             totrts = totrts(totes_c & tot_go);
             avg_rt_tote = fix(mean(totrts)*1000);     %Display in units of milliseconds.
-            tot_rt = sprintf('Average RT:\t\t\t%3d milliseconds',avg_rt_tote);
+%             tot_rt = sprintf('Average RT:\t\t\t%3d milliseconds',avg_rt_tote);
+            fullblocktext = sprintf('Number Correct:\t\t%d of %d\nPercent Correct:\t\t%4.1f%%\nAverage RT:\t\t\t%3d milliseconds',length(find(totes_c)),tot_trial,corr_per_totes,avg_rt_tote);
         end
         
         DrawFormattedText(w,'Total Results','center',ibt_ydim+120,COLORS.WHITE);
-        DrawFormattedText(w,corr_count_totes,ibt_xdim,ibt_ydim+150,COLORS.WHITE);
-        DrawFormattedText(w,corr_pert_totes,ibt_xdim,ibt_ydim+180,COLORS.WHITE);
-        DrawFormattedText(w,tot_rt,ibt_xdim,ibt_ydim+210,COLORS.WHITE);
-        
+%         DrawFormattedText(w,corr_count_totes,ibt_xdim,ibt_ydim+150,COLORS.WHITE);
+%         DrawFormattedText(w,corr_pert_totes,ibt_xdim,ibt_ydim+180,COLORS.WHITE);
+%         DrawFormattedText(w,tot_rt,ibt_xdim,ibt_ydim+210,COLORS.WHITE);
+        DrawFormattedText(w,fullblocktext,ibt_xdim,ibt_ydim+150,COLORS.WHITE,[],[],[],1.5);
+
     end
 Screen('Flip',w);
 KbWait();
@@ -473,7 +480,7 @@ end
     while telap <= (STIM.trialdur); %Subtract .1 from this if delay is desired.
         telap = GetSecs() - RT_start;
         [Down, ~, Code] = KbCheck();            %wait for key to be pressed
-        if Down == 1 && find(Code) == corr_respkey
+        if (Down == 1 && any(find(Code) == corr_respkey))
             trial_rt = GetSecs() - RT_start;
             
             if GNG.var.GoNoGo(trial,block) == 0;        %If NoGo + Press, throw X
@@ -487,7 +494,7 @@ end
             end
             break
             
-        elseif Down == 1 && find(Code) == incorr_respkey %The wrong key was pressed. Throw X regardless of Go/No Go
+        elseif (Down == 1 && any(find(Code) == incorr_respkey)) %The wrong key was pressed. Throw X regardless of Go/No Go
             trial_rt = GetSecs() - RT_start;
             
             DrawFormattedText(w,'X','center','center',COLORS.RED);
@@ -500,6 +507,8 @@ end
             
             WaitSecs(.5);
             break
+        else
+            FlushEvents();
         end
         
     end
