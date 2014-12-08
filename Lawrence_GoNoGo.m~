@@ -410,10 +410,8 @@ for block = 1:STIM.blocks;
         DrawFormattedText(w,fullblocktext,ibt_xdim,YCENTER+40,COLORS.WHITE,[],[],[],1.5);
 
     end
-    
-    DrawFormattedText(w,'Press any key to continue.','center',wRect(4)*9/10,COLORS.WHITE);
-    Screen('Flip',w);
-    KbWait();
+Screen('Flip',w);
+KbWait();
     
 end
 
