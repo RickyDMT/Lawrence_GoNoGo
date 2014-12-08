@@ -155,6 +155,7 @@ for g = 1:STIM.blocks;
     GNG.var.lr(1:STIM.trials,g) = shuffled(row:rend,4);
 end
 
+    GNG.var.picname = cell(STIM.trials,STIM.blocks);
     GNG.data.rt = zeros(STIM.trials, STIM.blocks);
     GNG.data.correct = zeros(STIM.trials, STIM.blocks)-999;
     GNG.data.avg_rt = zeros(STIM.blocks,1);
@@ -413,7 +414,7 @@ for block = 1:STIM.blocks;
     
     DrawFormattedText(w,'Press any key to continue.','center',wRect(4)*9/10,COLORS.WHITE);
     Screen('Flip',w);
-    KbWait();
+KbWait();
     
 end
 
@@ -543,15 +544,19 @@ global PICS GNG w
         pic = GNG.var.picnum(j,block);
         switch GNG.var.trial_type(j,block)
             case {1}
-                PICS.out(j).raw = imread(getfield(PICS,'in','go',{pic},'name'));
+                picnname = getfield(PICS,'in','go',{pic},'name');
+                PICS.out(j).raw = imread(picnname);
 %                 %I think this is is covered outside of switch/case
 %                 PICS.out(j).texture = Screen('MakeTexture',w,PICS.out(j).raw);
             case {2}
-                PICS.out(j).raw = imread(getfield(PICS,'in','no',{pic},'name'));
+                picname = getfield(PICS,'in','no',{pic},'name');
+                PICS.out(j).raw = imread(picname);
             case {3}
-                PICS.out(j).raw = imread(getfield(PICS,'in','neut',{pic},'name'));
+                picname = getfield(PICS,'in','neut',{pic},'name');
+                PICS.out(j).raw = imread(picname);
         end
         PICS.out(j).texture = Screen('MakeTexture',w,PICS.out(j).raw);
+        GNG.var.picname{j,block} = picname;
     end
 %end
 end
