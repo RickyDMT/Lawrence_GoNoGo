@@ -360,14 +360,14 @@ for block = 1:STIM.blocks;
         %Don't try to calculate avg RT, they got them all wrong (WTF?)
         %Display "N/A" for this block's RT.
 %         ibt_rt = sprintf('Average RT:\tUnable to calculate RT due to 0 correct trials.');
-    fulltext = sprintf('Number Correct:\t\t%d of %d\nPercent Correct:\t\t%4.1f%%\nAverage RT:\t\tUnable to calculate due to 0 correct trials.',length(find(c)),STIM.trials,corr_per);
+        fulltext = sprintf('Number Correct:\t\t%d of %d\nPercent Correct:\t\t%4.1f%%\nAverage RT:\t\tUnable to calculate due to 0 correct trials.',length(find(c)),STIM.trials,corr_per);
     else
         block_go = GNG.var.GoNoGo(:,block) == 1;                        %Find go trials
         blockrts = GNG.data.rt(:,block);                                %Pull all RT data
         blockrts = blockrts(c & block_go);                              %Resample RT only if go & correct.
         avg_rt_block = fix(mean(blockrts)*1000);                        %Display avg rt in milliseconds.
 %         ibt_rt = sprintf('Average RT:\t\t\t%3d milliseconds',avg_rt_block);
-    fulltext = sprintf('Number Correct:\t\t%d of %d\nPercent Correct:\t\t%4.1f%%\nAverage Rt:\t\t\t%3d milliseconds',length(find(c)),STIM.trials,corr_per,avg_rt_block);
+        fulltext = sprintf('Number Correct:\t\t%d of %d\nPercent Correct:\t\t%4.1f%%\nAverage Rt:\t\t\t%3d milliseconds',length(find(c)),STIM.trials,corr_per,avg_rt_block);
 
     end
     
@@ -403,11 +403,11 @@ for block = 1:STIM.blocks;
             fullblocktext = sprintf('Number Correct:\t\t%d of %d\nPercent Correct:\t\t%4.1f%%\nAverage RT:\t\t\t%3d milliseconds',length(find(totes_c)),tot_trial,corr_per_totes,avg_rt_tote);
         end
         
-        DrawFormattedText(w,'Total Results','center',ibt_ydim+120,COLORS.WHITE);
+        DrawFormattedText(w,'Total Results','center',YCENTER,COLORS.WHITE);
 %         DrawFormattedText(w,corr_count_totes,ibt_xdim,ibt_ydim+150,COLORS.WHITE);
 %         DrawFormattedText(w,corr_pert_totes,ibt_xdim,ibt_ydim+180,COLORS.WHITE);
 %         DrawFormattedText(w,tot_rt,ibt_xdim,ibt_ydim+210,COLORS.WHITE);
-        DrawFormattedText(w,fullblocktext,ibt_xdim,ibt_ydim+150,COLORS.WHITE,[],[],[],1.5);
+        DrawFormattedText(w,fullblocktext,ibt_xdim,YCENTER+40,COLORS.WHITE,[],[],[],1.5);
 
     end
 Screen('Flip',w);
