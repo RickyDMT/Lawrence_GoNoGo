@@ -27,7 +27,7 @@ function Lawrence_GoNoGo(varargin)
 global KEY COLORS w wRect XCENTER YCENTER PICS STIM GNG trial
 
 prompt={'SUBJECT ID' 'Condition (1 or 2)' 'Session (1, 2, or 3)' 'Practice? 0 or 1'};
-defAns={'4444' '' '' ''};
+defAns={'4444' '1' '1' '1'};
 
 answer=inputdlg(prompt,'Please input subject info',1,defAns);
 
@@ -73,7 +73,11 @@ STIM.notrials = 130;
 STIM.totes = STIM.blocks*STIM.trials;
 STIM.trialdur = 1.250;
 
-
+praise = {'Keep up the good work!';
+    'Nice going! You can do it!';
+    'Awesome job!';
+    'Woohooo! Great job!';
+    'That. Was. Spectacular.'};
 %% Find & load in pics
 %find the image directory by figuring out where the .m is kept
 
@@ -208,7 +212,7 @@ end
 %you can set the font sizes and styles here
 Screen('TextFont', w, 'Arial');
 %Screen('TextStyle', w, 1);
-Screen('TextSize',w,35);
+Screen('TextSize',w,30);
 
 KbName('UnifyKeyNames');
 
@@ -246,7 +250,7 @@ if prac == 1;
     %Set up single trials with instructions; and maybe additional trials with
     %verbose feedback ("You pressed the key when the line was dashed. Only
     %press the key when the line is solid.")
-    DrawFormattedText(w,' Let''s practice.\n\nPress any key to continue.','center','center',COLORS.WHITE);
+    DrawFormattedText(w,'Let''s practice.\n\nPress any key to continue.','center','center',COLORS.WHITE);
     Screen('Flip',w);
     KbWait([],2);
     
@@ -256,6 +260,13 @@ if prac == 1;
     % again. Use "while 1" and break with KbCheck == no, do not repeat
     % practice.
     
+    oldold = Screen('TextSize',w,20);
+    
+    %Make box for text
+    prac_box = STIM.img;
+    prac_box(:,2) = 0;
+    prac_box(:,4) = wRect(4);
+    
     %Load first neutral pic
     practpic = imread(getfield(PICS,'in','neut',{1},'name'));
     practpic = Screen('MakeTexture',w,practpic);
@@ -263,35 +274,44 @@ if prac == 1;
     %Display pic on left to show go signal and "left" key.
     Screen('FrameRect',w,COLORS.rect,STIM.framerect,6);
     Screen('DrawTexture',w,practpic,[],STIM.img(1,:));
-    pract_text = sprintf('In this trial you would press "%s" because the image is on the left with a solid frame.\n\nPress "%s" now.',KbName(KEY.left),KbName(KEY.left));
-    DrawFormattedText(w,pract_text,'center','center',COLORS.WHITE,25,[],[],[],[],STIM.img(2,:));
+    pract_text = sprintf('In this trial you would press "%s" because the image is on the left with a solid frame. Press "%s" now.',KbName(KEY.left),KbName(KEY.left));
+    DrawFormattedText(w,pract_text,'center','center',COLORS.WHITE,25,[],[],1.5,[],prac_box(2,:));
     Screen('Flip',w);
     
-    commandwindow;
-    WaitSecs(2);
+%     while 1
+%         [d, ~, ccc] = KbCheck();            %wait for left key to be pressed
+%         if (d == 1 && any(find(ccc)) == KEY.left)
+%             Screen('Flip',w);
+%             WaitSecs(1);
+%             break;         
+%         end
+%     end
     while 1
-        FlushEvents();
-        [d, ~, c] = KbCheck();            %wait for left key to be pressed
-        if d == 1 && find(c) == KEY.left
+
+        [dd, ~, cc] = KbCheck();            %wait for "right" key to be pressed
+        if dd == 1 && find(cc) == KEY.left
+            Screen('Flip',w);
+            WaitSecs(1);
+
             break;
-        else
-            FlushEvents();
+
         end
     end
-    
-    %Displat img on Right to show use of "right" key.
+    %Display img on Right to show use of "right" key.
     Screen('FrameRect',w,COLORS.rect,STIM.framerect,6);
     Screen('DrawTexture',w,practpic,[],STIM.img(2,:));
     pract_text = sprintf('And in this trial you would press "%s" because the image is on the right with a solid frame.\n\nPress "%s" now.',KbName(KEY.right),KbName(KEY.right));
-    DrawFormattedText(w,pract_text,'center','center',COLORS.WHITE,25,[],[],[],[],STIM.img(1,:));
+    DrawFormattedText(w,pract_text,'center','center',COLORS.WHITE,25,[],[],1.5,[],prac_box(1,:));
     Screen('Flip',w);
     while 1
-        FlushEvents();
+       
         [dd, ~, cc] = KbCheck();            %wait for "right" key to be pressed
         if dd == 1 && find(cc) == KEY.right
+            Screen('Flip',w);
+            WaitSecs(1);
+            
             break;
-        else
-            FlushEvents();
+
         end
     end
     Screen('Flip',w);
@@ -301,20 +321,22 @@ if prac == 1;
     DrawDashRect();
     Screen('DrawTexture',w,practpic,[],STIM.img(1,:));
     pract_text = sprintf('In the trials with the dashed frame, do not press any buttons. A real trial like this will move on automatically.\n\nPress any key to continue.');
-    DrawFormattedText(w,pract_text,'center','center',COLORS.WHITE,25,[],[],[],[],STIM.img(2,:));
+    DrawFormattedText(w,pract_text,'center','center',COLORS.WHITE,25,[],[],1.5,[],prac_box(2,:));
     Screen('Flip',w);
-    KbWait();
+    KbWait([],2);
     WaitSecs(.5);
     
     %Do another no go trial with image on other side
     DrawDashRect();
     Screen('DrawTexture',w,practpic,[],STIM.img(2,:));
     pract_text = sprintf('It doesn''t matter which side the image is on, do not press either button.\n\nPress any key to continue.');
-    DrawFormattedText(w,pract_text,'center','center',COLORS.WHITE,25,[],[],[],[],STIM.img(1,:));
+    DrawFormattedText(w,pract_text,'center','center',COLORS.WHITE,25,[],[],1.5,[],prac_box(1,:));
     Screen('Flip',w);
-    KbWait();
+    KbWait([],2);
     Screen('Flip',w);
     WaitSecs(2);
+    
+    Screen('TextSize',w,oldold);
 end
 
 %% Task
@@ -353,7 +375,7 @@ for block = 1:STIM.blocks;
     
     c = GNG.data.correct(:,block) == 1;                                 %Find correct trials
 %     corr_count = sprintf('Number Correct:\t%d of %d',length(find(c)),STIM.trials);  %Number correct = length of find(c)
-    corr_per = length(find(c))*100/length(c);                           %Percent correct = length find(c) / total trials
+    corr_per = length(find(c))*100/length(c);                           %Percent correct = length find(c) *100 / total trials
 %     corr_pert = sprintf('Percent Correct:\t%4.1f%%',corr_per);          %sprintf that data to string.
 %     fulltext = sprintf('Number Correct:\t\t%d of %d\nPercent Correct:\t\t%4.1f%%',length(find(c)),STIM.trials,corr_per);
     
@@ -368,7 +390,7 @@ for block = 1:STIM.blocks;
         blockrts = blockrts(c & block_go);                              %Resample RT only if go & correct.
         GNG.data.avg_rt(block) = fix(mean(blockrts)*1000);                        %Display avg rt in milliseconds.
 %         ibt_rt = sprintf('Average RT:\t\t\t%3d milliseconds',avg_rt_block);
-        fulltext = sprintf('Number Correct:\t\t%d of %d\nPercent Correct:\t\t%4.1f%%\nAverage Rt:\t\t\t%3d milliseconds',length(find(c)),STIM.trials,corr_per,GNG.data.avg_rt(block));
+        fulltext = sprintf('Number Correct:\t\t%d of %d\nPercent Correct:\t\t%4.1f%%\nAverage Rt:\t\t\t %3d milliseconds',length(find(c)),STIM.trials,corr_per,GNG.data.avg_rt(block));
 
     end
     
@@ -401,7 +423,7 @@ for block = 1:STIM.blocks;
             totrts = totrts(totes_c & tot_go);
             avg_rt_tote = fix(mean(totrts)*1000);     %Display in units of milliseconds.
 %             tot_rt = sprintf('Average RT:\t\t\t%3d milliseconds',avg_rt_tote);
-            fullblocktext = sprintf('Number Correct:\t\t%d of %d\nPercent Correct:\t\t%4.1f%%\nAverage RT:\t\t\t%3d milliseconds',length(find(totes_c)),tot_trial,corr_per_totes,avg_rt_tote);
+            fullblocktext = sprintf('Number Correct:\t\t%d of %d\nPercent Correct:\t\t%4.1f%%\nAverage RT:\t\t\t %3d milliseconds',length(find(totes_c)),tot_trial,corr_per_totes,avg_rt_tote);
         end
         
         DrawFormattedText(w,'Total Results','center',YCENTER,COLORS.WHITE);
@@ -412,10 +434,17 @@ for block = 1:STIM.blocks;
 
     end
     
-    DrawFormattedText(w,'Press any key to continue.','center',wRect(4)*9/10,COLORS.WHITE);
+    if corr_per >= 70;
+        praise_text = sprintf('%s\n\nPress any key to continue.',praise{randi(length(praise))});
+    elseif corr_per >= 50;
+        praise_text = sprintf('Nice job, but keep trying to improve!\n\nPress any key to continue.');
+    else
+        praise_text = sprintf('Stick with it! I know you can do better!\n\nPress any key to continue.');
+    end
+    DrawFormattedText(w,praise_text,'center',wRect(4)*8/10,COLORS.WHITE);
     Screen('Flip',w);
-KbWait();
-    
+    KbWait();
+    Screen('Flip',w);
 end
 
 %% Save all the data
