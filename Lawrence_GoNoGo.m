@@ -70,6 +70,7 @@ STIM.blocks = 6;
 STIM.trials = 50;
 STIM.gotrials = 130;
 STIM.notrials = 130;
+STIM.neuttrials = 40;
 STIM.totes = STIM.blocks*STIM.trials;
 STIM.trialdur = 1.250;
 
@@ -82,15 +83,16 @@ praise = {'Keep up the good work!';
 %find the image directory by figuring out where the .m is kept
 
 [imgdir,~,~] = fileparts(which('MasterPics_PlaceHolder.m'));
-picratefolder = fullfile(imgdir,'SavingsRatings');
+picratefolder = fullfile(imgdir,'Saved_Pic_Ratings');
+randopics = 0;
 
 try
     cd(picratefolder)
 catch
-    error('Could not find and/or open the .');
+    error('Could not find and/or open the pic rating file.');
 end
 
-filen = sprintf('PicRate_%d.mat',ID);
+filen = sprintf('PicRatings_CC_%d-1.mat',ID);
 try
     p = open(filen);
 catch
@@ -100,8 +102,8 @@ catch
     if randopics == 1
         cd(imgdir);
         p = struct;
-        p.PicRating.go = dir('Healthy*');
-        p.PicRating.no = dir('Unhealthy*');
+        p.PicRating.H = dir('Healthy*');
+        p.PicRating.U = dir('Unhealthy*');
         %XXX: ADD RANDOMIZATION SO THAT SAME 80 IMAGES AREN'T CHOSEN
         %EVERYTIME
     else
@@ -114,16 +116,23 @@ cd(imgdir);
  
 PICS =struct;
 if COND == 1;                   %Condtion = 1 is food. 
-%     PICS.in.go = dir('good*.jpg');
-%     PICS.in.no = dir('*bad*.jpg');
-%Choose top 80 most appetizing pics)
-    PICS.in.go = struct('name',{p.PicRating.go(1:80).name}');
-    PICS.in.no = struct('name',{p.PicRating.no(1:80).name}');
+    if randopics ==1;
+        %randomly select 60 pictures.
+        PICS.in.go = struct('name',{p.PicRating.H(randperm(60)).name}');
+        PICS.in.no = struct('name',{p.PicRating.U(randperm(60)).name}');
+        PICS.in.neut = dir('Water*');
+    else
+
+    %Choose the pre-selected random 60 from top 80 most appetizing pics)
+    PICS.in.go = struct('name',{p.PicRating.H([p.PicRating.H.chosen]==1).name}');
+    PICS.in.no = struct('name',{p.PicRating.U([p.PicRating.U.chosen]==1).name}');
     PICS.in.neut = dir('Water*');
+    end
+    
 elseif COND == 2;               %Condition = 2 is not food (birds/flowers)
     PICS.in.go = dir('Bird*');
     PICS.in.no = dir('Flowers*');
-    PICS.in.neut = dir('Mammal*');
+    PICS.in.neut = dir('Mam*');
 end
 % picsfields = fieldnames(PICS.in);
 
@@ -136,17 +145,27 @@ end
 %% Fill in rest of pertinent info
 GNG = struct;
 
-trial_types = [ones(STIM.gotrials,1); repmat(2,STIM.notrials,1); repmat(3,length(PICS.in.neut),1)];  %1 = go; 2 = no; 3 = neutral/variable
+trial_types = [ones(STIM.gotrials,1); repmat(2,STIM.notrials,1); repmat(3,STIM.neuttrials,1)];  %1 = go; 2 = no; 3 = neutral/variable
 gonogo = [ones(STIM.gotrials,1); zeros(STIM.notrials,1)];                         %1 = go; 0 = nogo;
 gonogoh20 = BalanceTrials(sum(trial_types==3),1,[0 1]);     %For neutral, go & no go are randomized
 gonogo = [gonogo; gonogoh20];
 
 %Make long list of #s to represent each pic
 % piclist = [1:length(PICS.in.go) 1:length(PICS.in.no) 1:length(PICS.in.neut)]';
-piclist = [randsample(80,STIM.gotrials,1)' randsample(80,STIM.notrials,1)' 1:length(PICS.in.neut)]';
-l_r = randi(2,length(piclist),1); 
-trial_types = [trial_types gonogo piclist l_r];
+% piclist = [randsample(80,STIM.gotrials,1)' randsample(80,STIM.notrials,1)' 1:length(PICS.in.neut)]';
+
+l_r = randi(2,length(trial_types),1); 
+
+% trial_types = [trial_types gonogo piclist l_r];
+% shuffled = trial_types(randperm(size(trial_types,1)),:);
+
+piclist = NaN(length(gonogo),1);
+
+trial_types = [trial_types gonogo piclist l_r]; %jitter];
 shuffled = trial_types(randperm(size(trial_types,1)),:);
+shuffled((shuffled(:,1)==1),3) = [randperm(60)'; randperm(60)'; randperm(60,STIM.gotrials-120)'];
+shuffled((shuffled(:,1)==2),3) = [randperm(60)'; randperm(60)'; randperm(60,STIM.notrials-120)'];
+shuffled((shuffled(:,1)==3),3) = [randperm(40,STIM.neuttrials)'];
 
 %Add jitter on "+"
 
@@ -557,7 +576,7 @@ end
             correct = 0;
             WaitSecs(.5);
         end
-        trial_rt = -999;                        %No press = no RT
+        trial_rt = NaN;                        %No press = no RT = NaN
     end
     
 
@@ -573,8 +592,8 @@ global PICS GNG w
         pic = GNG.var.picnum(j,block);
         switch GNG.var.trial_type(j,block)
             case {1}
-                picnname = getfield(PICS,'in','go',{pic},'name');
-                PICS.out(j).raw = imread(picnname);
+                picname = getfield(PICS,'in','go',{pic},'name');
+                PICS.out(j).raw = imread(picname);
 %                 %I think this is is covered outside of switch/case
 %                 PICS.out(j).texture = Screen('MakeTexture',w,PICS.out(j).raw);
             case {2}
