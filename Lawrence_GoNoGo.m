@@ -26,7 +26,7 @@ function Lawrence_GoNoGo(varargin)
 
 global KEY COLORS w wRect XCENTER YCENTER PICS STIM GNG trial
 
-prompt={'SUBJECT ID' 'Condition (1 or 2)' 'Session (1, 2, or 3)' 'Practice? 0 or 1'};
+prompt={'SUBJECT ID' 'Condition (1 or 2)' 'Session (1, 2, 3, or 4)' 'Practice? 0 or 1'};
 defAns={'4444' '1' '1' '1'};
 
 answer=inputdlg(prompt,'Please input subject info',1,defAns);
@@ -46,8 +46,8 @@ prac = str2double(answer{4});
 %     error('Subject ID & Condition code do not match.');
 % end
 
-
-rng(ID); %Seed random number generator with subject ID
+rng_num = ID*SESS;
+rng(rng_num); %Seed random number generator with subject ID
 d = clock;
 
 KEY = struct;
@@ -131,7 +131,7 @@ if COND == 1;                   %Condtion = 1 is food.
     
 elseif COND == 2;               %Condition = 2 is not food (birds/flowers)
     PICS.in.go = dir('Bird*');
-    PICS.in.no = dir('Flowers*');
+    PICS.in.no = dir('Flower*');
     PICS.in.neut = dir('Mam*');
 end
 % picsfields = fieldnames(PICS.in);
